@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import cgi
 import json
+import os
 import re
 import threading
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -16,6 +17,7 @@ ROOT = Path(__file__).resolve().parent
 SITE = ROOT / "site"
 PIPELINE = LabRAGPipeline(load_config(ROOT / "config.yaml"))
 UPLOAD_LOCK = threading.Lock()
+UPLOAD_ENABLED = os.getenv("LABMIND_ENABLE_UPLOAD", "true").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def sanitize_uploaded_pdf_name(filename: str | None) -> str:
@@ -118,6 +120,8 @@ class Handler(SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
         if parsed.path == "/api/upload":
+            if not UPLOAD_ENABLED:
+                return self._json({"error": "公开部署已关闭文档上传。"}, status=403)
             return self._handle_upload()
         if parsed.path not in {"/api/search", "/api/answer"}:
             self.send_error(404)
@@ -169,7 +173,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
 if __name__ == "__main__":
-    host = "127.0.0.1"
-    port = 8765
+    host = os.getenv("LABMIND_HOST", "127.0.0.1")
+    port = int(os.getenv("LABMIND_PORT", "8765"))
     print(f"Lab RAG server running at http://{host}:{port}/index.html")
     ThreadingHTTPServer((host, port), Handler).serve_forever()

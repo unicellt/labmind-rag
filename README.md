@@ -76,3 +76,9 @@ python -m unittest discover -s tests -p "test_*.py"
 ## 规格文档
 
 项目整体规格位于根目录 `../spec/`。
+
+## Public deployment
+
+Live site: https://labmind.64.83.18.184.nip.io/
+
+The production deployment uses Nginx, HTTPS, systemd and a prebuilt local index. Anonymous PDF upload is disabled on the public instance.

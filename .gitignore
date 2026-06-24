@@ -1,0 +1,11 @@
+.env
+.venv/
+.mineru-venv/
+.mineru-home/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+
+# Local knowledge base and derived indexes are deployed separately.
+data/

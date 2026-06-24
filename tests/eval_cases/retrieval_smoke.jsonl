@@ -1,0 +1,11 @@
+{"id":"ret-001","query":"丝状真菌挑单克隆如何稀释涂板","expected_doc":"gao lab protocol.pdf","expected_terms":["丝状真菌","单克隆","稀释"],"max_rank":5,"notes":""}
+{"id":"ret-002","query":"ARTP诱变仪参数设置","expected_doc":"gao lab protocol.pdf","expected_terms":["ARTP","氦气","120W"],"max_rank":5,"notes":""}
+{"id":"ret-003","query":"原生质体的制备需要什么酶解液","expected_doc":"gao lab protocol.pdf","expected_terms":["原生质体","酶解液","yatalase"],"max_rank":5,"notes":""}
+{"id":"ret-004","query":"公司发酵培养基配方","expected_doc":"gao lab protocol.pdf","expected_terms":["葡萄糖","蔗糖","豆饼粉"],"max_rank":5,"notes":""}
+{"id":"ret-005","query":"UniProt如何查询蛋白基本信息","expected_doc":"江涛组相关实验SOP及附录---2020.5.19 (2).pdf","expected_terms":["UniProt","Function","Sites"],"max_rank":5,"notes":""}
+{"id":"ret-006","query":"如何获得蛋白FASTA格式序列","expected_doc":"江涛组相关实验SOP及附录---2020.5.19 (2).pdf","expected_terms":["FASTA","Sequence","蛋白序列"],"max_rank":5,"notes":""}
+{"id":"ret-007","query":"如何验证核苷酸序列与蛋白序列匹配","expected_doc":"江涛组相关实验SOP及附录---2020.5.19 (2).pdf","expected_terms":["Blast","双序列比对","氨基酸序列"],"max_rank":5,"notes":""}
+{"id":"ret-008","query":"信号肽预测使用哪个网站","expected_doc":"江涛组相关实验SOP及附录---2020.5.19 (2).pdf","expected_terms":["SignalP","信号肽","预测"],"max_rank":5,"notes":""}
+{"id":"ret-009","query":"二硫键还原剂有哪些","expected_doc":"江涛组相关实验SOP及附录---2020.5.19 (2).pdf","expected_terms":["DTT","TCEP","二硫键"],"max_rank":5,"notes":""}
+{"id":"ret-010","query":"月球样品如何处理","expected_doc":"","expected_terms":[],"max_rank":0,"notes":"document_out_of_scope"}
+

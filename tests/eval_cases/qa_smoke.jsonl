@@ -1,0 +1,11 @@
+{"id":"qa-001","question":"丝状真菌挑单克隆的稀释涂板步骤是什么？","expected_points":["稀释","涂板","培养"],"expected_sources":["gao lab protocol.pdf"],"forbidden":["月球样品"],"notes":""}
+{"id":"qa-002","question":"ARTP诱变仪的参数设置有哪些？","expected_points":["氦气","120W","1mm"],"expected_sources":["gao lab protocol.pdf"],"forbidden":["未在文档中出现的仪器型号"],"notes":""}
+{"id":"qa-003","question":"原生质体制备中酶解液如何配置？","expected_points":["yatalase","snailase","K-buffer"],"expected_sources":["gao lab protocol.pdf"],"forbidden":["胰蛋白酶"],"notes":""}
+{"id":"qa-004","question":"公司发酵培养基包含哪些成分？","expected_points":["葡萄糖","蔗糖","豆饼粉"],"expected_sources":["gao lab protocol.pdf"],"forbidden":["LB培养基"],"notes":""}
+{"id":"qa-005","question":"如何使用 UniProt 查询蛋白基本信息？","expected_points":["UniProt","Function","Sites"],"expected_sources":["江涛组相关实验SOP及附录---2020.5.19 (2).pdf"],"forbidden":["NCBI是唯一入口"],"notes":""}
+{"id":"qa-006","question":"如何获取蛋白的 FASTA 格式序列？","expected_points":["FASTA","Sequence","复制"],"expected_sources":["江涛组相关实验SOP及附录---2020.5.19 (2).pdf"],"forbidden":["必须付费下载"],"notes":""}
+{"id":"qa-007","question":"如何验证核苷酸序列与蛋白序列是否匹配？","expected_points":["Blast","双序列比对","氨基酸序列"],"expected_sources":["江涛组相关实验SOP及附录---2020.5.19 (2).pdf"],"forbidden":["不需要验证"],"notes":""}
+{"id":"qa-008","question":"信号肽预测可以使用什么工具？","expected_points":["SignalP","物种类别","提交"],"expected_sources":["江涛组相关实验SOP及附录---2020.5.19 (2).pdf"],"forbidden":["AlphaFold"],"notes":""}
+{"id":"qa-009","question":"实验室里常用的二硫键还原剂有哪些？","expected_points":["DTT","TCEP"],"expected_sources":["江涛组相关实验SOP及附录---2020.5.19 (2).pdf"],"forbidden":["SDS"],"notes":""}
+{"id":"qa-010","question":"月球样品在这个实验室 SOP 中如何处理？","expected_points":["未找到足够依据"],"expected_sources":[],"forbidden":["具体月球样品处理流程"],"notes":"document_out_of_scope"}
+

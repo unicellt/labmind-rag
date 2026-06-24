@@ -1,0 +1,48 @@
+paths:
+  source_docs:
+    - data/examples/江涛组相关实验SOP及附录---2020.5.19 (2).pdf
+    - data/examples/gao lab protocol.pdf
+    - data/examples/ai_bio_company_china_xtalpi.md
+  parsed_docs: data/parsed
+  chunks: data/chunks/chunks.jsonl
+  index_store: data/index_store
+  examples_dir: data/examples
+  raw_docs: data/raw_docs
+  vector_store: data/vector_store
+
+parser:
+  preferred: local_mineru
+  local_mineru_executable: .mineru-venv/bin/mineru
+  local_mineru_home: .mineru-home
+  local_mineru_output_dir: data/parsed/mineru
+  local_mineru_backend: pipeline
+  local_mineru_fallback: false
+  mineru_api_base: https://mineru.net/api/v4
+  mineru_input_dir: data/raw_docs
+  mineru_output_dir: data/parsed/mineru
+  docx_fallback: true
+
+chunking:
+  chunk_size: 900
+  chunk_overlap: 150
+
+retrieval:
+  top_k: 5
+  mode: hybrid
+  candidate_multiplier: 4
+  embedding_model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  keyword_weight: 0.4
+  vector_weight: 0.6
+  keyword_confidence_threshold: 0.5
+  confident_keyword_weight: 0.7
+  rrf_k: 60
+  vector_min_score: 0.3
+  vector_only_min_score: 0.55
+  vector_batch_size: 32
+
+llm:
+  provider: openai_compatible
+  model: Qwen/Qwen3-8B
+  temperature: 0.0
+  base_url: https://api.siliconflow.cn/v1
+  api_key_env: SILICONFLOW_API_KEY

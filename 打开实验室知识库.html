@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="refresh" content="1; url=http://127.0.0.1:8765/index.html" />
+  <title>打开实验室知识库</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f6f7fb;
+      color: #111827;
+      font-family: "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    main {
+      width: min(560px, calc(100vw - 32px));
+      background: #fff;
+      border: 1px solid #e6e9f0;
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+      line-height: 1.7;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      margin-top: 14px;
+      padding: 0 16px;
+      border-radius: 6px;
+      background: #625cf6;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    code {
+      display: block;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f3f4f6;
+      color: #273043;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>实验室 SOP 知识库</h1>
+    <p>正在打开本地知识库页面。如果没有自动跳转，请点击下面的按钮。</p>
+    <a href="http://127.0.0.1:8765/index.html">打开知识库</a>
+    <p>如果页面无法访问，请双击同目录下的 <b>启动并打开实验室知识库.bat</b>，或先在项目目录启动服务：</p>
+    <code>python server.py</code>
+  </main>
+</body>
+</html>

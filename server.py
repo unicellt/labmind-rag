@@ -5,9 +5,10 @@ import json
 import os
 import re
 import threading
+import uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from src.config import load_config
 from src.pipeline import LabRAGPipeline
@@ -17,8 +18,11 @@ ROOT = Path(__file__).resolve().parent
 SITE = ROOT / "site"
 PIPELINE = LabRAGPipeline(load_config(ROOT / "config.yaml"))
 UPLOAD_LOCK = threading.Lock()
+PIPELINE_LOCK = threading.RLock()
 UPLOAD_ENABLED = os.getenv("LABMIND_ENABLE_UPLOAD", "true").strip().lower() in {"1", "true", "yes", "on"}
 MAX_UPLOAD_BYTES = int(os.getenv("LABMIND_MAX_UPLOAD_MB", "50")) * 1024 * 1024
+UPLOAD_TASKS: dict[str, dict] = {}
+UPLOAD_TASKS_LOCK = threading.Lock()
 
 
 def sanitize_uploaded_pdf_name(filename: str | None) -> str:
@@ -61,10 +65,11 @@ def process_upload_file(filename: str | None, content: bytes, pipeline: LabRAGPi
         target = unique_upload_path(upload_dir, safe_name)
         target.write_bytes(content)
         try:
-            if hasattr(pipeline, "ingest_document"):
-                chunk_count = pipeline.ingest_document(target)
-            else:
-                chunk_count = pipeline.ingest()
+            with PIPELINE_LOCK:
+                if hasattr(pipeline, "ingest_document"):
+                    chunk_count = pipeline.ingest_document(target)
+                else:
+                    chunk_count = pipeline.ingest()
         except Exception:
             target.unlink(missing_ok=True)
             raise
@@ -75,6 +80,45 @@ def process_upload_file(filename: str | None, content: bytes, pipeline: LabRAGPi
         "docs": docs,
         "ingest_report": getattr(pipeline, "last_ingest_report", {}),
     }, 200
+
+def start_upload_task(filename: str, content: bytes, pipeline: LabRAGPipeline) -> str:
+    task_id = uuid.uuid4().hex
+    with UPLOAD_TASKS_LOCK:
+        if len(UPLOAD_TASKS) >= 100:
+            finished = [key for key, value in UPLOAD_TASKS.items() if value.get("status") in {"completed", "failed"}]
+            for key in finished[:50]:
+                UPLOAD_TASKS.pop(key, None)
+        UPLOAD_TASKS[task_id] = {"task_id": task_id, "status": "queued"}
+
+    def worker():
+        with UPLOAD_TASKS_LOCK:
+            UPLOAD_TASKS[task_id]["status"] = "processing"
+        try:
+            result, status = process_upload_file(filename, content, pipeline)
+            with UPLOAD_TASKS_LOCK:
+                if status >= 400:
+                    UPLOAD_TASKS[task_id] = {
+                        "task_id": task_id,
+                        "status": "failed",
+                        "error": result.get("error", f"HTTP {status}"),
+                    }
+                else:
+                    UPLOAD_TASKS[task_id] = {
+                        "task_id": task_id,
+                        "status": "completed",
+                        "result": result,
+                    }
+        except Exception as exc:
+            with UPLOAD_TASKS_LOCK:
+                UPLOAD_TASKS[task_id] = {
+                    "task_id": task_id,
+                    "status": "failed",
+                    "error": str(exc),
+                }
+
+    threading.Thread(target=worker, daemon=True, name=f"labmind-upload-{task_id[:8]}").start()
+    return task_id
+
 
 def get_docs_payload(pipeline: LabRAGPipeline) -> dict:
     rows = read_jsonl(pipeline.config.paths.chunks)
@@ -89,12 +133,15 @@ def process_api_request(path: str, payload: dict, pipeline: LabRAGPipeline) -> t
     doc_name = payload.get("doc_name")
     if doc_name in {"全部文档", "all", "ALL", ""}:
         doc_name = None
-    rerank = bool(payload.get("rerank", True))
+    rerank_value = payload.get("rerank", True)
+    rerank = rerank_value if isinstance(rerank_value, bool) else str(rerank_value).lower() not in {"0", "false", "no", "off"}
     answer_type = str(payload.get("answer_type", "综合"))
     if path == "/api/search":
-        return {"sources": pipeline.search(question, top_k=top_k, doc_name=doc_name, rerank=rerank)}, 200
+        with PIPELINE_LOCK:
+            return {"sources": pipeline.search(question, top_k=top_k, doc_name=doc_name, rerank=rerank)}, 200
     if path == "/api/answer":
-        return pipeline.answer(question, top_k=top_k, doc_name=doc_name, rerank=rerank, answer_type=answer_type), 200
+        with PIPELINE_LOCK:
+            return pipeline.answer(question, top_k=top_k, doc_name=doc_name, rerank=rerank, answer_type=answer_type), 200
     return {"error": "not found"}, 404
 
 class Handler(SimpleHTTPRequestHandler):
@@ -118,6 +165,20 @@ class Handler(SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         if parsed.path == "/api/docs":
             return self._json(get_docs_payload(PIPELINE))
+        if parsed.path == "/api/upload-status":
+            task_id = parse_qs(parsed.query).get("task_id", [""])[-1]
+            with UPLOAD_TASKS_LOCK:
+                task = dict(UPLOAD_TASKS.get(task_id, {}))
+            if not task:
+                return self._json({"error": "upload task not found"}, status=404)
+            return self._json(task)
+        if parsed.path in {"/api/search", "/api/answer"}:
+            payload = {key: values[-1] for key, values in parse_qs(parsed.query).items()}
+            try:
+                result, status = process_api_request(parsed.path, payload, PIPELINE)
+                return self._json(result, status=status)
+            except Exception as exc:
+                return self._json({"error": str(exc)}, status=500)
         return super().do_GET()
 
     def do_POST(self):
@@ -161,8 +222,20 @@ class Handler(SimpleHTTPRequestHandler):
                 field = field[0] if field else None
             if field is None or not getattr(field, "filename", None):
                 return self._json({"error": "请在 file 字段上传 PDF 文件。"}, status=400)
-            result, status = process_upload_file(field.filename, field.file.read(), PIPELINE)
-            return self._json(result, status=status)
+            content = field.file.read()
+            try:
+                sanitize_uploaded_pdf_name(field.filename)
+            except ValueError as exc:
+                return self._json({"error": str(exc)}, status=400)
+            if not content:
+                return self._json({"error": "上传文件为空。"}, status=400)
+            if len(content) > MAX_UPLOAD_BYTES:
+                return self._json(
+                    {"error": f"PDF 文件不能超过 {MAX_UPLOAD_BYTES // (1024 * 1024)} MB。"},
+                    status=413,
+                )
+            task_id = start_upload_task(field.filename, content, PIPELINE)
+            return self._json({"task_id": task_id, "status": "queued"}, status=202)
         except ValueError as exc:
             return self._json({"error": str(exc)}, status=400)
         except Exception as exc:

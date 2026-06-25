@@ -16,6 +16,7 @@ Environment=LABMIND_PORT=8765
 Environment=LABMIND_ENABLE_UPLOAD=true
 Environment=LABMIND_MAX_UPLOAD_MB=50
 ExecStart=/opt/labmind/.venv/bin/python /opt/labmind/server.py
+ExecStartPost=/bin/sh -c 'for i in $(seq 1 60); do /usr/bin/curl -fsS "http://127.0.0.1:8765/api/search?question=protein&top_k=1&rerank=true" >/dev/null && exit 0; sleep 1; done; exit 1'
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

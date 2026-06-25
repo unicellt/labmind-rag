@@ -13,7 +13,8 @@ Environment=HOME=/opt/labmind
 Environment=HF_HOME=/opt/labmind/.cache/huggingface
 Environment=LABMIND_HOST=127.0.0.1
 Environment=LABMIND_PORT=8765
-Environment=LABMIND_ENABLE_UPLOAD=false
+Environment=LABMIND_ENABLE_UPLOAD=true
+Environment=LABMIND_MAX_UPLOAD_MB=50
 ExecStart=/opt/labmind/.venv/bin/python /opt/labmind/server.py
 Restart=on-failure
 RestartSec=5

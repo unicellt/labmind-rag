@@ -9,7 +9,8 @@
 - Nginx 监听公网 80 端口。
 - LabMind 仅监听服务器本机 `127.0.0.1:8765`。
 - systemd 负责启动和故障重启。
-- 公开环境关闭 `/api/upload`，避免匿名用户上传文件并触发昂贵的 MinerU 解析。
+- 公开环境开放 `/api/upload`，单个 PDF 上限 50 MB，并通过 Nginx 对每个 IP 限频。
+- VPS 优先尝试 MinerU；服务器未安装 MinerU 时自动回退 PyPDF2，并重建混合检索索引。
 - 问答、检索和文档浏览保持可用。
 
 服务器环境变量保存在 `/etc/labmind.env`。至少配置 `SILICONFLOW_API_KEY`。如果不配置模型密钥，系统会使用本地抽取式答案。

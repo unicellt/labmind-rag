@@ -38,11 +38,23 @@ class LabRAGPipeline:
                 output_dir=self.config.parser.local_mineru_output_dir,
                 backend=self.config.parser.local_mineru_backend,
             )
-            pages = parser.parse_pdf(path)
-            parser_name = "mineru"
+            try:
+                pages = parser.parse_pdf(path)
+                parser_name = "mineru"
+                parser_status = "success"
+                parser_error = None
+            except Exception as exc:
+                if not self.config.parser.local_mineru_fallback:
+                    raise RuntimeError(f"MinerU failed for {path.name}: {exc}") from exc
+                pages = ingestor.load_documents([path])
+                parser_name = "pypdf2"
+                parser_status = "fallback"
+                parser_error = f"{type(exc).__name__}: {exc}"
         else:
             pages = ingestor.load_documents([path])
             parser_name = "pypdf2"
+            parser_status = "success"
+            parser_error = None
         new_chunks = ingestor.split_documents(pages)
         existing = [
             DocumentChunk(**row)
@@ -59,9 +71,10 @@ class LabRAGPipeline:
             "documents": {
                 path.name: {
                     "parser": parser_name,
-                    "status": "success",
+                    "status": parser_status,
                     "pages": len(pages),
                     "chunks": len(new_chunks),
+                    **({"error": parser_error} if parser_error else {}),
                 }
             },
             "chunk_count": total_count,

@@ -18,6 +18,7 @@ SITE = ROOT / "site"
 PIPELINE = LabRAGPipeline(load_config(ROOT / "config.yaml"))
 UPLOAD_LOCK = threading.Lock()
 UPLOAD_ENABLED = os.getenv("LABMIND_ENABLE_UPLOAD", "true").strip().lower() in {"1", "true", "yes", "on"}
+MAX_UPLOAD_BYTES = int(os.getenv("LABMIND_MAX_UPLOAD_MB", "50")) * 1024 * 1024
 
 
 def sanitize_uploaded_pdf_name(filename: str | None) -> str:
@@ -53,6 +54,8 @@ def process_upload_file(filename: str | None, content: bytes, pipeline: LabRAGPi
         return {"error": str(exc)}, 400
     if not content:
         return {"error": "上传文件为空。"}, 400
+    if len(content) > MAX_UPLOAD_BYTES:
+        return {"error": f"PDF 文件不能超过 {MAX_UPLOAD_BYTES // (1024 * 1024)} MB。"}, 413
     upload_dir = pipeline.config.paths.examples_dir or (ROOT / "data" / "examples")
     with UPLOAD_LOCK:
         target = unique_upload_path(upload_dir, safe_name)
@@ -137,6 +140,12 @@ class Handler(SimpleHTTPRequestHandler):
         content_type = self.headers.get("Content-Type", "")
         if not content_type.lower().startswith("multipart/form-data"):
             return self._json({"error": "请使用 multipart/form-data 上传 PDF。"}, status=400)
+        content_length = int(self.headers.get("Content-Length", "0") or "0")
+        if content_length > MAX_UPLOAD_BYTES + (1024 * 1024):
+            return self._json(
+                {"error": f"PDF 文件不能超过 {MAX_UPLOAD_BYTES // (1024 * 1024)} MB。"},
+                status=413,
+            )
         try:
             form = cgi.FieldStorage(
                 fp=self.rfile,

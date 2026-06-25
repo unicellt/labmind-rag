@@ -81,4 +81,4 @@ python -m unittest discover -s tests -p "test_*.py"
 
 Live site: https://labmind.64.83.18.184.nip.io/
 
-The production deployment uses Nginx, HTTPS, systemd and a prebuilt local index. Anonymous PDF upload is disabled on the public instance.
+The production deployment uses Nginx, HTTPS, systemd and a prebuilt local index. PDF upload is enabled with a 50 MB limit, per-IP rate limiting, serialized indexing, and automatic PyPDF2 fallback when MinerU is unavailable.
